@@ -28,13 +28,13 @@ public class PriceCalculatorTest {
         // given
         PriceCalculator priceCalculator = new PriceCalculator();
         List<Product> products = new ArrayList<>();
-        products.add(new Product("Masło", 5.99, Category.FOOD));
+        products.add(new Product("Masło", 6.0, Category.FOOD));
 
         // when
         double result = priceCalculator.calculatePrice(products, null);
 
         // then
-        assertThat(result, is(5.99));
+        assertThat(result, is(6.0));
     }
 
     @Test
@@ -43,16 +43,16 @@ public class PriceCalculatorTest {
         // given
         PriceCalculator priceCalculator = new PriceCalculator();
         List<Product> products = new ArrayList<>();
-        products.add(new Product("Masło", 5.99, Category.FOOD));
+        products.add(new Product("Masło", 10.0, Category.FOOD));
 
         List<Coupon> coupons = new ArrayList<>();
-        coupons.add(new Coupon(Category.FOOD, 20));
+        coupons.add(new Coupon(Category.FOOD, 10));
 
         // when
         double result = priceCalculator.calculatePrice(products, coupons);
 
         // then
-        assertThat(result, is(4.79));
+        assertThat(result, is(9.0));
     }
 
 
