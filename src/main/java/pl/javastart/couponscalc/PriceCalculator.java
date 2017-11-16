@@ -1,54 +1,75 @@
 package pl.javastart.couponscalc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PriceCalculator {
 
     public double calculatePrice(List<Product> products, List<Coupon> coupons) {
-        List<Double> productsDiscoutPrice = new ArrayList<>();
+        if (null == products) return 0.0;
+        else return bestChoice(products,coupons);
+    }
 
-        double price = 0;
-        double totalAmountWithDiscout = 0;
-        double totalAmmountNoDiscout = 0;
-        double discountForAllProducts = 0;
-        double amountToPay = 0;
+    public double bestChoice (List<Product> products, List<Coupon> coupons) {
+        double minAmountToPay = 0;
+        Category bestCat= maxBonusByCat(products,coupons);
+        double discountApplied = 0;
 
-        if (null == products) price = 0;
-        else {
-            for (int i = 0; i < products.size(); i++) {
-                totalAmmountNoDiscout += products.get(i).getPrice();
-                if (null == coupons) {
-                    price = products.get(i).getPrice();
-                } else {
-                    for (int j = 0; j < coupons.size(); j++) {
-                        if (products.get(i).getCategory().equals(coupons.get(j).getCategory())) {
-                            double percent = coupons.get(j).getDiscountValueInPercents();
-                            price = products.get(i).getPrice() * (1 - (percent / 100));
-                            System.out.println("discount price: "+price);
-                        } else if (coupons.get(j).getCategory() == null && coupons.get(j).getDiscountValueInPercents() != 0) {
-                            discountForAllProducts = coupons.get(j).getDiscountValueInPercents() / 100;
-                            System.out.println(discountForAllProducts);
-                        }
-                    }
+        for(int i = 0;i<products.size();i++){
+            if(products.get(i).getCategory().equals(bestCat)){
+                for(int j = 0;j<coupons.size();j++){
+                    if(coupons.get(j).equals(bestCat)) discountApplied = coupons.get(j).getDiscountValueInPercents();
                 }
-                productsDiscoutPrice.add(price);
+            }
+            else discountApplied = 0;
+            minAmountToPay += products.get(i).getPrice()*(1-(discountApplied/100));
+        }
+
+        if (minAmountToPay < totalAmountAfterDiscountOnAll(products, coupons))
+            return minAmountToPay; else return totalAmountAfterDiscountOnAll(products,coupons);
+    }
+
+
+    public Category maxBonusByCat(List<Product> products, List<Coupon> coupons) {
+        Map<Double,Category> amounts = new HashMap<>();
+        double sum = 0;
+
+        for (Category category : Category.values()) {
+            for (Product product : products) {
+                if (product.getCategory() == category) {
+                    sum += product.getPrice();
+                }
+                amounts.put(sum,category);
             }
         }
 
-        for (Double item : productsDiscoutPrice) {
-            totalAmountWithDiscout += item;
+        double minValue = 0;
+        for (Map.Entry<Double,Category> amounts2 : amounts.entrySet()) {
+            minValue = amounts2.getKey();
+            if (amounts2.getKey() < minValue) {
+                minValue = amounts2.getKey();
+            }
         }
+      return amounts.get(minValue);
+    }
 
-        System.out.println("Total amount without discout: "+totalAmmountNoDiscout);
 
-        if (totalAmmountNoDiscout * (1 - discountForAllProducts) < totalAmountWithDiscout)
-            amountToPay = totalAmmountNoDiscout * (1 - discountForAllProducts);
-        else amountToPay = totalAmountWithDiscout;
 
-        System.out.println("Total amount with discout: "+totalAmountWithDiscout);
+    public double totalAmountNoDiscout(List<Product> products) {
+        double totalSum = 0;
+        for (Product product : products) {
+            totalSum += product.getPrice();
+        }
+        return totalSum;
+    }
 
-        return amountToPay;
+    public double totalAmountAfterDiscountOnAll(List<Product> products, List<Coupon> coupons) {
+        double totalValueAfterDiscounts = 0;
+        for (int j = 0; j < coupons.size(); j++) {
+            if (null == coupons.get(j).getCategory() && coupons.get(j).getDiscountValueInPercents() != 0) {
+                double discountForAllProducts = coupons.get(j).getDiscountValueInPercents();
+                totalValueAfterDiscounts = totalAmountNoDiscout(products) * (1 - (discountForAllProducts / 100));
+            }
+        }
+        return totalValueAfterDiscounts;
     }
 }
-
