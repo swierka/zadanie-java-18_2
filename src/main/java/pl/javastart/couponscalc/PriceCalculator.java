@@ -6,52 +6,59 @@ public class PriceCalculator {
 
     public double calculatePrice(List<Product> products, List<Coupon> coupons) {
         if (null == products) return 0.0;
-        else return bestChoice(products,coupons);
+        else return bestChoice(products, coupons);
     }
 
-    public double bestChoice (List<Product> products, List<Coupon> coupons) {
+    public double bestChoice(List<Product> products, List<Coupon> coupons) {
         double minAmountToPay = 0;
-        Category bestCat= maxBonusByCat(products,coupons);
+        Category bestCat = maxBonusByCat(products, coupons);
         double discountApplied = 0;
 
-        for(int i = 0;i<products.size();i++){
-            if(products.get(i).getCategory().equals(bestCat)){
-                for(int j = 0;j<coupons.size();j++){
-                    if(coupons.get(j).equals(bestCat)) discountApplied = coupons.get(j).getDiscountValueInPercents();
+        for (int i = 0; i < products.size(); i++) {
+            if (products.get(i).getCategory().equals(bestCat)) {
+                for (int j = 0; j < coupons.size(); j++) {
+                    if (coupons.get(j).equals(bestCat)) discountApplied = coupons.get(j).getDiscountValueInPercents();
                 }
-            }
-            else discountApplied = 0;
-            minAmountToPay += products.get(i).getPrice()*(1-(discountApplied/100));
+            } else discountApplied = 0;
+            minAmountToPay += products.get(i).getPrice() * (1 - (discountApplied / 100));
         }
 
         if (minAmountToPay < totalAmountAfterDiscountOnAll(products, coupons))
-            return minAmountToPay; else return totalAmountAfterDiscountOnAll(products,coupons);
+            return minAmountToPay;
+        else return totalAmountAfterDiscountOnAll(products, coupons);
     }
 
 
     public Category maxBonusByCat(List<Product> products, List<Coupon> coupons) {
-        Map<Double,Category> amounts = new HashMap<>();
+        Map<Double, Category> amounts = new HashMap<>();
         double sum = 0;
 
-        for (Category category : Category.values()) {
-            for (Product product : products) {
-                if (product.getCategory() == category) {
-                    sum += product.getPrice();
+        for (int i = 0; i < coupons.size(); i++) {
+            for (int j = 0; j < products.size(); j++) {
+                if (coupons.get(i).getCategory() !=null && coupons.get(i).getCategory().equals(products.get(j).getCategory())) {
+                    sum += (products.get(j).getPrice() * coupons.get(i).getDiscountValueInPercents()) / 100;  //obliczanie lacznej kwoty znizki dla danej kat
                 }
-                amounts.put(sum,category);
+
             }
+            amounts.put(sum,coupons.get(i).getCategory());
         }
 
-        double minValue = 0;
-        for (Map.Entry<Double,Category> amounts2 : amounts.entrySet()) {
-            minValue = amounts2.getKey();
-            if (amounts2.getKey() < minValue) {
-                minValue = amounts2.getKey();
+
+        double maxValue = 0;
+        for (Map.Entry<Double, Category> amounts2 : amounts.entrySet()) {
+            maxValue = amounts2.getKey();
+
+            for (int i = 0; i < coupons.size(); i++) {
+                if (amounts2.getValue() == coupons.get(i).getCategory() && null != coupons.get(i).getCategory()) {
+                    if (amounts2.getKey() > maxValue) {
+                        maxValue = amounts2.getKey();
+                    }
+                }
+
             }
         }
-      return amounts.get(minValue);
+        return amounts.get(maxValue);
     }
-
 
 
     public double totalAmountNoDiscout(List<Product> products) {
